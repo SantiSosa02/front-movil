@@ -457,64 +457,251 @@ class _VentasScreenState extends State<VentasScreenActivos> {
     return widgets;
   }
 
+Future<List<dynamic>> obtenerAbonos(int idVenta) async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('token');
+
+    if (token == null) {
+      print('Error in obtenerAbonos: Token not available');
+      return [];
+    }
+
+    final response = await http.get(
+      Uri.parse('https://api-postgress.onrender.com/api/abonos-venta/$idVenta'),
+      headers: {'x-token': token},
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data;
+    } else {
+      print('Error al obtener los abonos. Código de estado: ${response.statusCode}');
+      return [];
+    }
+  } catch (error) {
+    print('Error al obtener los abonos: $error');
+    return [];
+  }
+}
+
+  List<Widget> buildDetalleAbonosWidgets(List<dynamic>? detalleAbonos) {
+    List<Widget> widgets = [];
+
+    if (detalleAbonos == null || detalleAbonos.isEmpty) {
+      widgets.add(
+        Center(
+          child: Container(
+            margin: const EdgeInsets.all(15.0),
+            child: const Text(
+              'No hay abonos registrados',
+              style: TextStyle(
+                color: Color.fromARGB(255, 138, 138, 138),
+                fontSize: 14.0,
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      for (var detalleAbono in detalleAbonos) {
+        widgets.add(Container(
+          margin: const EdgeInsets.all(15.0),
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Fecha abono: ',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      detalleAbono['fechaabono'].toString(),
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 138, 138, 138),
+                        fontSize: 14.0,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Valor del Abono: ',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      formatPrecio(detalleAbono['valorabono']),
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 138, 138, 138),
+                        fontSize: 14.0,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Valor Restante: ',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      formatPrecio(detalleAbono['valorrestante']),
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 138, 138, 138),
+                        fontSize: 14.0,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+              ],
+            ),
+          ),
+        ));
+      }
+    }
+
+    return widgets;
+  }
+
   void _mostrarDetallesBottomSheet(
       BuildContext context, dynamic venta, dynamic cliente) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
         return Container(
-          height: MediaQuery.of(context).size.height *
-              0.5, // Ajusta el factor según sea necesario
+          height: MediaQuery.of(context).size.height * 0.5,
           padding: const EdgeInsets.all(16.0),
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16.0),
               topRight: Radius.circular(16.0),
             ),
             color: Colors.white,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
+            shrinkWrap: true,
             children: [
-              const SizedBox(height: 16.0),
-              // Título de Detalles de Productos
-              Container(
-                alignment: Alignment.center,
-                child: Text(
-                  'Detalles de Productos',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                  ),
+              // Sección de Detalles de Productos
+              _buildSection(
+                title: 'Detalles de Productos',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: buildDetalleProductosWidgets(
+                      venta['DetalleVentaProductos']),
                 ),
               ),
-              const SizedBox(height: 8.0),
-              // Lista de Detalles de Productos
+              // Sección de Detalles de Servicios
+              _buildSection(
+                title: 'Detalles de Servicios',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: buildDetalleServiciosWidgets(
+                      venta['DetalleVentaServicios']),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSection({required String title, required Widget child}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16.0),
+        Container(
+          alignment: Alignment.center,
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Container(
+          child: child,
+        ),
+      ],
+    );
+  }
+
+  void _mostrarDetallesAbonosBottomSheet(
+    BuildContext context,
+    dynamic venta,
+    dynamic cliente,
+    int idVenta, // Agrega el parámetro idVenta aquí
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16.0),
+              topRight: Radius.circular(16.0),
+            ),
+            color: Colors.white,
+          ),
+          child: ListView(
+            shrinkWrap: true,
+            children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: buildDetalleProductosWidgets(
-                  venta['DetalleVentaProductos'],
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              // Título de Detalles de Servicios
-              Container(
-                alignment: Alignment.center,
-                child: Text(
-                  'Detalles de Servicios',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
+                children: [
+                  // Sección de Detalles de Abonos
+                  _buildSection(
+                    title: 'Detalles de Abonos',
+                    child: FutureBuilder<List<dynamic>>(
+                      future: obtenerAbonos(idVenta), // Usa el idVenta aquí
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Text('Cargando abonos...');
+                        } else if (snapshot.hasError) {
+                          return Text('Error al cargar abonos');
+                        } else {
+                          List<dynamic> abonos = snapshot.data ?? [];
+                          if (abonos.isEmpty) {
+                            return Text('No hay abonos registrados');
+                          } else {
+                            List<Widget> abonosWidgets =
+                                buildDetalleAbonosWidgets(abonos);
+                            return Column(children: abonosWidgets);
+                          }
+                        }
+                      },
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 8.0),
-              // Lista de Detalles de Servicios
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: buildDetalleServiciosWidgets(
-                  venta['DetalleVentaServicios'],
-                ),
+                ],
               ),
             ],
           ),
@@ -535,122 +722,108 @@ class _VentasScreenState extends State<VentasScreenActivos> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: ventas.length,
-              itemBuilder: (context, index) {
-                if (index < clientes.length) {
-                  final venta = ventas[index];
-                  final cliente = clientes[index];
-
-                  List<Widget> detallesProductosWidgets = [];
-                  if (venta['DetalleVentaProductos'] != null &&
-                      (venta['DetalleVentaProductos'] as List).isNotEmpty) {
-                    detallesProductosWidgets = buildDetalleProductosWidgets(
-                        venta['DetalleVentaProductos']);
-                  } else {
-                    detallesProductosWidgets.add(
-                      const Text(
-                        'No hay productos registrados',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 138, 138, 138),
-                          fontSize: 14.0,
-                        ),
+            child: ventas.isEmpty
+                ? Center(
+                    child: Text(
+                      'No hay ventas registradas',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 138, 138, 138),
+                        fontSize: 16.0,
                       ),
-                    );
-                  }
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: ventas.length,
+                    itemBuilder: (context, index) {
+                      if (index < clientes.length) {
+                        final venta = ventas[index];
+                        final cliente = clientes[index];
 
-                  List<Widget> detallesServiciosWidgets = [];
-                  if (venta['DetalleVentaServicios'] != null &&
-                      (venta['DetalleVentaServicios'] as List).isNotEmpty) {
-                    detallesServiciosWidgets = buildDetalleServiciosWidgets(
-                        venta['DetalleVentaServicios']);
-                  } else {
-                    detallesServiciosWidgets.add(
-                      const Text(
-                        'No hay servicios registrados',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 138, 138, 138),
-                          fontSize: 14.0,
-                        ),
-                      ),
-                    );
-                  }
+                        List<Widget> detallesProductosWidgets = [];
+                        if (venta['DetalleVentaProductos'] != null &&
+                            (venta['DetalleVentaProductos'] as List)
+                                .isNotEmpty) {
+                          detallesProductosWidgets =
+                              buildDetalleProductosWidgets(
+                                  venta['DetalleVentaProductos']);
+                        } else {
+                          detallesProductosWidgets.add(
+                            const Text(
+                              'No hay productos registrados',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 138, 138, 138),
+                                fontSize: 14.0,
+                              ),
+                            ),
+                          );
+                        }
 
-                  return Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(9.0),
-                        child: InkWell(
-                          onTap: () {
-                            _mostrarDetallesBottomSheet(
-                                context, venta, cliente);
-                          },
-                          child: Card(
-                            elevation: 2.0,
-                            color: Colors.white,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.account_balance_wallet,
+                        List<Widget> detallesServiciosWidgets = [];
+                        if (venta['DetalleVentaServicios'] != null &&
+                            (venta['DetalleVentaServicios'] as List)
+                                .isNotEmpty) {
+                          detallesServiciosWidgets =
+                              buildDetalleServiciosWidgets(
+                                  venta['DetalleVentaServicios']);
+                        } else {
+                          detallesServiciosWidgets.add(
+                            const Text(
+                              'No hay servicios registrados',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 138, 138, 138),
+                                fontSize: 14.0,
+                              ),
+                            ),
+                          );
+                        }
+
+                        return Column(children: [
+                          Padding(
+                            padding: const EdgeInsets.all(9.0),
+                            child: Card(
+                              elevation: 2.0,
+                              color: Colors.white,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.account_balance_wallet,
                                           size: 32,
-                                          color: Colors.green.withOpacity(0.5)),
-                                      SizedBox(width: 8),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '${cliente['nombre']} ${cliente['apellido']}',
-                                            style: const TextStyle(
-                                              color:
-                                                  Color.fromARGB(255, 0, 0, 0),
-                                              fontSize: 14.0,
+                                          color: Colors.green.withOpacity(0.5),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '${cliente['nombre']} ${cliente['apellido']}',
+                                              style: const TextStyle(
+                                                color: Color.fromARGB(
+                                                    255, 0, 0, 0),
+                                                fontSize: 14.0,
+                                              ),
                                             ),
-                                          ),
-                                          Text(
-                                            'Fecha: ${venta['fecha']}',
-                                            style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 138, 138, 138),
-                                              fontSize: 14.0,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          RichText(
-                                            text: TextSpan(
+                                            Row(
                                               children: [
-                                                const TextSpan(
-                                                  text: 'No: ',
-                                                  style: TextStyle(
-                                                    color: Colors.black,
+                                                Text(
+                                                  'Fecha: ${venta['fecha']}',
+                                                  style: const TextStyle(
+                                                    color: Color.fromARGB(
+                                                        255, 138, 138, 138),
                                                     fontSize: 14.0,
-                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
-                                                const WidgetSpan(
-                                                  child: SizedBox(
-                                                    width: 8,
-                                                  ),
-                                                ),
-                                                TextSpan(
-                                                  text:
-                                                      '${venta['numerofactura']}',
+                                                SizedBox(
+                                                    width:
+                                                        100), // Espacio adicional entre la fecha y el estado de pago
+                                                // Estado de pago
+                                                Text(
+                                                  '${venta['estadopago']}',
                                                   style: const TextStyle(
                                                     color: Color.fromARGB(
                                                         255, 138, 138, 138),
@@ -659,58 +832,130 @@ class _VentasScreenState extends State<VentasScreenActivos> {
                                                 ),
                                               ],
                                             ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            RichText(
+                                              text: TextSpan(
+                                                children: [
+                                                  const TextSpan(
+                                                    text: 'No: ',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 14.0,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const WidgetSpan(
+                                                    child: SizedBox(
+                                                      width: 8,
+                                                    ),
+                                                  ),
+                                                  TextSpan(
+                                                    text:
+                                                        '${venta['numerofactura']}',
+                                                    style: const TextStyle(
+                                                      color: Color.fromARGB(
+                                                          255, 138, 138, 138),
+                                                      fontSize: 14.0,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.attach_money,
+                                                color: Colors.green),
+                                            Text(
+                                              '${formatPrecio(venta['valortotal'])}',
+                                              style: TextStyle(
+                                                color: Colors.green,
+                                                fontSize: 18.0,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            _mostrarDetallesBottomSheet(
+                                                context, venta, cliente);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            primary: Colors.green,
+                                            onPrimary: Colors.white,
+                                            minimumSize: Size(0,
+                                                30), // Ajusta el tamaño del botón según tus preferencias
                                           ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.attach_money,
-                                              color: Colors.green),
-                                          Text(
-                                            '${formatPrecio(venta['valortotal'])}',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 18.0,
+                                          child: Text(
+                                            'Detalles',
+                                          ),
+                                        ),
+                                        SizedBox(
+                                            width:
+                                                10), // Ajusta el espacio según tus preferencias
+                                        Visibility(
+                                          visible:
+                                              venta['estadopago'] == 'Credito',
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              _mostrarDetallesAbonosBottomSheet(
+                                                context,
+                                                venta,
+                                                cliente,
+                                                venta[
+                                                    'idventa'], // Pasa el idventa aquí
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              primary: Colors.green,
+                                              onPrimary: Colors.white,
+                                              minimumSize: Size(0,
+                                                  30), // Ajusta el tamaño del botón según tus preferencias
+                                            ),
+                                            child: Text(
+                                              'Abonos',
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  InkWell(
-                                    onTap: () {
-                                      _mostrarDetallesBottomSheet(
-                                          context, venta, cliente);
-                                    },
-                                    child: const Text(
-                                      'Mostrar Detalles',
-                                      style: TextStyle(
-                                        color: Colors.green,
-                                        fontSize: 14.0,
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 0.01),
-                    ],
-                  );
-                } else {
-                  return Container();
-                }
-              },
-            ),
+                          )
+                        ]);
+                      } else {
+                        return Container();
+                      }
+                    },
+                  ),
           ),
           Container(
             padding: const EdgeInsets.all(16.0),
             width: double.infinity,
-            color: const Color.fromARGB(
-                255, 255, 255, 255), // Color de fondo del área del botón
+            color: const Color.fromARGB(255, 255, 255, 255),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

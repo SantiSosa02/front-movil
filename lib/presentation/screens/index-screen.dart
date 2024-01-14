@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:modulos_api/presentation/widgets/app_bar.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +12,7 @@ class IndexScreen extends StatefulWidget {
 
 class _IndexScreenState extends State<IndexScreen> {
   List<Map<String, dynamic>> productos = [];
+  List<dynamic> categorias = [];
 
   @override
   void initState() {
@@ -21,7 +21,46 @@ class _IndexScreenState extends State<IndexScreen> {
     fetchProductos();
   }
 
- Future<void> fetchProductos() async {
+  Future<void> fetchCategoriasInfo() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+
+      if (token == null) {
+        print('Error in fetchCategoriasInfo: Token not available');
+        return;
+      }
+
+      List<dynamic> nuevasCategorias = [];
+
+      for (var producto in productos) {
+        final idCategoria = producto['idcategoria'];
+        print('Producto: $producto');
+
+        final response = await http.get(
+          Uri.parse(
+              'https://api-postgress.onrender.com/api/categorias/$idCategoria'),
+          headers: {'x-token': token},
+        );
+
+        if (response.statusCode == 200) {
+          nuevasCategorias.add(json.decode(response.body));
+        } else {
+          throw Exception(
+              'Error loading category information. Status code: ${response.statusCode}');
+        }
+      }
+
+      setState(() {
+        categorias = nuevasCategorias;
+      });
+    } catch (error) {
+      print('Error in fetchCategoriasInfo: $error');
+    }
+  }
+
+  
+Future<void> fetchProductos() async {
   try {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
@@ -37,7 +76,6 @@ class _IndexScreenState extends State<IndexScreen> {
     );
 
     if (response.statusCode == 200) {
-      // Decodificar la respuesta JSON
       final List<dynamic> data = json.decode(response.body);
 
       // Convertir List<dynamic> a List<Map<String, dynamic>>
@@ -49,13 +87,28 @@ class _IndexScreenState extends State<IndexScreen> {
           .where((producto) => producto['cantidad'] < producto['stock_minimo'])
           .toList();
 
-      // Asigna directamente productosMenorStock a productos
+      for (var producto in productosMenorStock) {
+        final idCategoria = producto['idcategoria'];
+        final categoriaResponse = await http.get(
+          Uri.parse(
+              'https://api-postgress.onrender.com/api/categorias/$idCategoria'),
+          headers: {'x-token': token},
+        );
+
+        if (categoriaResponse.statusCode == 200) {
+          final categoriaData = json.decode(categoriaResponse.body);
+          producto['categoria'] = categoriaData;
+        } else {
+          throw Exception(
+              'Error loading category information. Status code: ${categoriaResponse.statusCode}');
+        }
+      }
+
       setState(() {
         productos = productosMenorStock;
       });
 
-      // Continúa con el resto de tu lógica
-      // Por ejemplo, puedes llamar a fetchClientesInfo aquí
+      await fetchCategoriasInfo();
     } else {
       throw Exception(
         'Error loading the list of products. Status code: ${response.statusCode}',
@@ -66,92 +119,150 @@ class _IndexScreenState extends State<IndexScreen> {
   }
 }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBarMenu(
-      title: 'Recomendaciones',
-    ),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start, // Ajusta la posición hacia la parte superior
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Contenedor que envuelve el CircleAvatar para personalizar opacidad y espacio
-          Container(
-            margin: EdgeInsets.only(top: 50), // Espacio entre el avatar y el texto
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.6),
-              shape: BoxShape.circle,
-            ),
-            child: CircleAvatar(
-              radius: 90,
-              backgroundImage: AssetImage("assets/images/VISOR 1.png"),
-            ),
-          ),
-          SizedBox(height: 50),
-          Text(
-            'Estas son las recomendaciones de los productos que podrías comprar:',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16),
-          Table(
-            defaultColumnWidth: FixedColumnWidth(180.0),
-            border: TableBorder.all(),
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.8,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              TableRow(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    child: Center(
-                      child: Text(
-                        'Producto',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    child: Center(
-                      child: Text(
-                        'Recomendación',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
+              SizedBox(height: 30),
+              Text(
+                'Estas son las recomendaciones de los productos que podrías comprar:',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
-              ...productos.map((producto) {
-                return TableRow(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(8),
-                      child: Center(
-                        child: Text(producto['nombre']),
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.all(8),
-                      child: Center(
-                        child: Text(
-                          'Comprar',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.w900,
-                          ),
+              SizedBox(height: 16),
+              productos.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No hay recomendaciones de productos en este momento.',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontStyle: FontStyle.italic,
                         ),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : Expanded(
+                      child: ListView.builder(
+                        itemCount: productos.length,
+                        itemBuilder: (context, index) {
+                          final producto = productos[index];
+                          final categoria = producto['categoria'];
+
+                          return Card(
+                            elevation: 2.0,
+                            color: Colors.white,
+                            margin: EdgeInsets.symmetric(vertical: 8),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.shopping_cart,
+                                        size: 32,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(width: 32),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '${producto['nombre']}',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 16.0,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          SizedBox(height: 22),
+                                          Row(
+                                            children: [
+                                              RichText(
+                                                text: TextSpan(
+                                                  children: [
+                                                    const TextSpan(
+                                                      text: 'Cantidad: ',
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontSize: 14.0,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const WidgetSpan(
+                                                      child: SizedBox(
+                                                        width: 8,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text:
+                                                          '${producto['cantidad']}',
+                                                      style: const TextStyle(
+                                                        color: Color.fromARGB(
+                                                            255, 138, 138, 138),
+                                                        fontSize: 14.0,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(width: 16),
+                                              RichText(
+                                                text: TextSpan(
+                                                  children: [
+                                                    const TextSpan(
+                                                      text: 'Categoria: ',
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontSize: 14.0,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const WidgetSpan(
+                                                      child: SizedBox(
+                                                        width: 8,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text:
+                                                          '${categoria['nombre']}',
+                                                      style: const TextStyle(
+                                                        color: Color.fromARGB(
+                                                            255, 138, 138, 138),
+                                                        fontSize: 14.0,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  ],
-                );
-              }),
             ],
           ),
-        ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

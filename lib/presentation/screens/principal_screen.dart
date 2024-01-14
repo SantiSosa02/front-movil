@@ -33,7 +33,7 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _selectedIndex == 0 ? null : AppBarMenu(title: _appBarTitle()),
+      appBar: AppBarMenu(title: _appBarTitle()),
       drawer: MenuDrawer(),
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
@@ -46,11 +46,11 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.check_circle_outline),
-            label: 'Activas',
+            label: 'Ventas activas',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.cancel),
-            label: 'Anuladas',
+            label: 'Ventas anuladas',
           ),
         ],
         currentIndex: _selectedIndex,
@@ -59,15 +59,15 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
       ),
     );
   }
-
-  String _appBarTitle() {
-    switch (_selectedIndex) {
-      case 0:
-        return 'Inicio';
-      case 1:
-        return 'Ventas';
-      default:
-        return 'Ventas';
-    }
+String _appBarTitle() {
+  switch (_selectedIndex) {
+    case 0:
+      return 'Recomendaciones';
+    case 1:
+      return 'Ventas';
+    default:
+      return 'Ventas';
   }
+}
+
 }

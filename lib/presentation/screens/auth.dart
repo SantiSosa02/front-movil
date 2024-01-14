@@ -16,19 +16,18 @@ Future<Map<String, dynamic>> login(String email, String password) async {
     body: body,
   );
 
-  // Verifica si la respuesta contiene un token
   if (response.statusCode == 200 && response.body.contains('token')) {
     final responseData = jsonDecode(response.body);
     final token = responseData['token'];
-
-    // Almacena el token en algún lugar accesible (puedes usar SharedPreferences, por ejemplo)
     saveTokenLocally(token);
-
     return responseData;
   } else {
-    throw Exception('Inicio de sesión fallido');
+    final errorResponse = jsonDecode(response.body);
+    throw Exception(errorResponse);
   }
 }
+
+
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -49,5 +48,4 @@ void saveTokenLocally(String token) {
   });
 }
 }
-
 
