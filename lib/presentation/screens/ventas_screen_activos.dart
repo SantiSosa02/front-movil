@@ -710,13 +710,28 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    double totalVentas = 0.0;
+@override
+Widget build(BuildContext context) {
+  // Obtener la fecha actual
+  DateTime now = DateTime.now();
 
-    for (var venta in ventas) {
-      totalVentas += double.parse(venta['valortotal'].toString());
-    }
+  // Obtiene el primer día del mes actual
+  DateTime firstDayOfThisMonth = DateTime(now.year, now.month, 1);
+
+  // Obtiene el último día del mes actual
+  DateTime lastDayOfThisMonth = DateTime(now.year, now.month + 1, 0);
+
+  // Filtra las ventas del mes actual
+  List<dynamic> ventasDelMesActual = ventas.where((venta) {
+    DateTime fechaVenta = DateTime.parse(venta['fecha']);
+    return fechaVenta.isAfter(firstDayOfThisMonth) && fechaVenta.isBefore(lastDayOfThisMonth);
+  }).toList();
+
+  // Suma las ventas del mes actual
+  double totalVentasMesActual = 0.0;
+  for (var venta in ventasDelMesActual) {
+    totalVentasMesActual += double.tryParse(venta['valortotal'].toString()) ?? 0.0;
+  }
 
     return Scaffold(
       body: Column(
@@ -960,7 +975,7 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total Ventas:',
+                  'Total ventas del último mes:',
                   style: TextStyle(fontSize: 16.0),
                 ),
                 Container(
@@ -971,7 +986,7 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
                     border: Border.all(color: Colors.black),
                   ),
                   child: FutureBuilder<String>(
-                    future: formatTotalVentas(totalVentas),
+                    future: formatTotalVentas(totalVentasMesActual),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Text('Cargando...');

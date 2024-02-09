@@ -21,16 +21,16 @@ void apiLogin() async {
   final email = emailController.text;
   final password = passwordController.text;
 
- if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Por favor, llene todos los campos"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
+  if (email.isEmpty || password.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Por favor, llene todos los campos"),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
+
   try {
     final response = await _authService.login(email, password);
     print('API Response: $response');
@@ -82,6 +82,8 @@ void apiLogin() async {
         errorMessage = 'El usuario está inactivo.';
       } else if (error.toString().contains('Credenciales incorrectas.')) {
         errorMessage = 'Credenciales incorrectas.';
+      } else if (error.toString().contains('El usuario no está registrado.')) {
+        errorMessage = 'El usuario no está registrado.';
       }
 
       final snackBar = SnackBar(
@@ -93,6 +95,7 @@ void apiLogin() async {
     }
   }
 }
+
 
 
 
