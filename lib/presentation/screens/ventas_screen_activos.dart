@@ -838,7 +838,7 @@ Widget build(BuildContext context) {
                                                         100), // Espacio adicional entre la fecha y el estado de pago
                                                 // Estado de pago
                                                 Text(
-                                                  '${venta['estadopago']}',
+                                                  '${venta['tipopago']}',
                                                   style: const TextStyle(
                                                     color: Color.fromARGB(
                                                         255, 138, 138, 138),
@@ -931,7 +931,7 @@ Widget build(BuildContext context) {
                                                 10), // Ajusta el espacio según tus preferencias
                                         Visibility(
                                           visible:
-                                              venta['estadopago'] == 'Credito',
+                                              venta['tipopago'] == 'Credito',
                                           child: ElevatedButton(
                                             onPressed: () {
                                               _mostrarDetallesAbonosBottomSheet(

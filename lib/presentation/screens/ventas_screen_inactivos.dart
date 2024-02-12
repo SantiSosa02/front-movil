@@ -793,7 +793,9 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                         Icon(
                                           Icons.account_balance_wallet,
                                           size: 32,
-                                          color: Colors.red.withOpacity(0.5),
+                                          color:
+                                              Color.fromARGB(255, 138, 138, 138)
+                                                  .withOpacity(0.5),
                                         ),
                                         SizedBox(width: 8),
                                         Column(
@@ -879,11 +881,13 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                         Row(
                                           children: [
                                             const Icon(Icons.attach_money,
-                                                color: Colors.red),
+                                                color: Color.fromARGB(
+                                                    255, 138, 138, 138)),
                                             Text(
                                               '${formatPrecio(venta['valortotal'])}',
                                               style: TextStyle(
-                                                color: Colors.red,
+                                                color: Color.fromARGB(
+                                                    255, 138, 138, 138),
                                                 fontSize: 18.0,
                                               ),
                                             ),
@@ -891,7 +895,32 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
+                                    SizedBox(
+                                        height:
+                                            20), // Espacio adicional antes de la observación
+                                  Row(
+  children: [
+    Text(
+      'Observación: ',
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 14.0,
+      ),
+    ),
+    Text(
+      '${venta['observacion']}',
+      style: const TextStyle(
+        color: Color.fromARGB(255, 138, 138, 138),
+        fontSize: 14.0,
+      ),
+    ),
+  ],
+),
+                                    SizedBox(
+                                        height:
+                                            10), // Espacio adicional después de la observación
+
+                
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.start,
@@ -902,7 +931,8 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                                 context, venta, cliente);
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            primary: Colors.red,
+                                            primary: Color.fromARGB(
+                                                255, 138, 138, 138),
                                             onPrimary: Colors.white,
                                             minimumSize: Size(0,
                                                 30), // Ajusta el tamaño del botón según tus preferencias
@@ -910,7 +940,7 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                           child: Text(
                                             'Detalles',
                                           ),
-                                        ),// Ajusta el espacio según tus preferencias
+                                        ), // Ajusta el espacio según tus preferencias
                                       ],
                                     ),
                                   ],
@@ -919,11 +949,10 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                             ),
                           )
                         ]);
-                      } 
+                      }
                     },
                   ),
           ),
-         
         ],
       ),
     );
