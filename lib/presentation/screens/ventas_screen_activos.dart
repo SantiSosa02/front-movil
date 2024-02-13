@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 
 class VentasScreenActivos extends StatefulWidget {
   const VentasScreenActivos({Key? key}) : super(key: key);
@@ -16,6 +17,8 @@ class _VentasScreenState extends State<VentasScreenActivos> {
   List<dynamic> clientes = [];
   List<dynamic> productos = [];
   List<dynamic> servicios = [];
+  bool _isLoadingVentas = false;
+  DateTime? startTime;
 
   @override
   void initState() {
@@ -31,6 +34,12 @@ class _VentasScreenState extends State<VentasScreenActivos> {
 
   Future<void> fetchVentas() async {
     try {
+      setState(() {
+        _isLoadingVentas = true;
+        startTime = DateTime
+            .now(); // Registrar el tiempo de inicio al iniciar la carga de ventas
+      });
+
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
@@ -56,6 +65,17 @@ class _VentasScreenState extends State<VentasScreenActivos> {
       }
     } catch (error) {
       print('Error in fetchClientes: $error');
+    } finally {
+      DateTime endTime =
+          DateTime.now(); // Obtener el tiempo al finalizar la carga de ventas
+      Duration duration = endTime
+          .difference(startTime!); // Calcular la duración de la carga de ventas
+      Future.delayed(duration, () {
+        setState(() {
+          _isLoadingVentas =
+              false; // Establecer _isLoadingVentas a false después de finalizar la carga de ventas
+        });
+      });
     }
   }
 
@@ -457,33 +477,35 @@ class _VentasScreenState extends State<VentasScreenActivos> {
     return widgets;
   }
 
-Future<List<dynamic>> obtenerAbonos(int idVenta) async {
-  try {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString('token');
+  Future<List<dynamic>> obtenerAbonos(int idVenta) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
 
-    if (token == null) {
-      print('Error in obtenerAbonos: Token not available');
+      if (token == null) {
+        print('Error in obtenerAbonos: Token not available');
+        return [];
+      }
+
+      final response = await http.get(
+        Uri.parse(
+            'https://api-postgress.onrender.com/api/abonos-venta/$idVenta'),
+        headers: {'x-token': token},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data;
+      } else {
+        print(
+            'Error al obtener los abonos. Código de estado: ${response.statusCode}');
+        return [];
+      }
+    } catch (error) {
+      print('Error al obtener los abonos: $error');
       return [];
     }
-
-    final response = await http.get(
-      Uri.parse('https://api-postgress.onrender.com/api/abonos-venta/$idVenta'),
-      headers: {'x-token': token},
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data;
-    } else {
-      print('Error al obtener los abonos. Código de estado: ${response.statusCode}');
-      return [];
-    }
-  } catch (error) {
-    print('Error al obtener los abonos: $error');
-    return [];
   }
-}
 
   List<Widget> buildDetalleAbonosWidgets(List<dynamic>? detalleAbonos) {
     List<Widget> widgets = [];
@@ -595,8 +617,8 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
         return Container(
           height: MediaQuery.of(context).size.height * 0.5,
           padding: const EdgeInsets.all(16.0),
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16.0),
               topRight: Radius.circular(16.0),
             ),
@@ -664,8 +686,8 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16.0),
               topRight: Radius.circular(16.0),
             ),
@@ -685,13 +707,13 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const Text('Cargando abonos...');
+                          return Text('Cargando abonos...');
                         } else if (snapshot.hasError) {
-                          return const Text('Error al cargar abonos');
+                          return Text('Error al cargar abonos');
                         } else {
                           List<dynamic> abonos = snapshot.data ?? [];
                           if (abonos.isEmpty) {
-                            return const Text('No hay abonos registrados');
+                            return Text('No hay abonos registrados');
                           } else {
                             List<Widget> abonosWidgets =
                                 buildDetalleAbonosWidgets(abonos);
@@ -710,44 +732,46 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  // Obtener la fecha actual
-  DateTime now = DateTime.now();
+  @override
+  Widget build(BuildContext context) {
+    // Obtener la fecha actual
+    DateTime now = DateTime.now();
 
-  // Obtiene el primer día del mes actual
-  DateTime firstDayOfThisMonth = DateTime(now.year, now.month, 1);
+    // Obtiene el primer día del mes actual
+    DateTime firstDayOfThisMonth = DateTime(now.year, now.month, 1);
 
-  // Obtiene el último día del mes actual
-  DateTime lastDayOfThisMonth = DateTime(now.year, now.month + 1, 0);
+    // Obtiene el último día del mes actual
+    DateTime lastDayOfThisMonth = DateTime(now.year, now.month + 1, 0);
 
-  // Filtra las ventas del mes actual
-  List<dynamic> ventasDelMesActual = ventas.where((venta) {
-    DateTime fechaVenta = DateTime.parse(venta['fecha']);
-    return fechaVenta.isAfter(firstDayOfThisMonth) && fechaVenta.isBefore(lastDayOfThisMonth);
-  }).toList();
+    // Filtra las ventas del mes actual
+    List<dynamic> ventasDelMesActual = ventas.where((venta) {
+      DateTime fechaVenta = DateTime.parse(venta['fecha']);
+      return fechaVenta.isAfter(firstDayOfThisMonth) &&
+          fechaVenta.isBefore(lastDayOfThisMonth);
+    }).toList();
 
-  // Suma las ventas del mes actual
-  double totalVentasMesActual = 0.0;
-  for (var venta in ventasDelMesActual) {
-    totalVentasMesActual += double.tryParse(venta['valortotal'].toString()) ?? 0.0;
-  }
+    // Suma las ventas del mes actual
+    double totalVentasMesActual = 0.0;
+    for (var venta in ventasDelMesActual) {
+      totalVentasMesActual +=
+          double.tryParse(venta['valortotal'].toString()) ?? 0.0;
+    }
 
     return Scaffold(
       body: Column(
         children: [
           Expanded(
-            child: ventas.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No hay ventas registradas',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 138, 138, 138),
-                        fontSize: 16.0,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
+            child: Stack(
+              children: [
+                // Lista de ventas
+                AnimatedOpacity(
+                  opacity: _isLoadingVentas
+                      ? 0.0
+                      : 1.0, // Oculta la lista durante la carga
+                  duration: Duration(
+                      milliseconds:
+                          1000), // Duración predefinida de la animación (por ejemplo, 500 milisegundos)
+                  child: ListView.builder(
                     itemCount: ventas.length,
                     itemBuilder: (context, index) {
                       if (index < clientes.length) {
@@ -810,7 +834,7 @@ Widget build(BuildContext context) {
                                           size: 32,
                                           color: Colors.green.withOpacity(0.5),
                                         ),
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: 8),
                                         Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
@@ -833,7 +857,7 @@ Widget build(BuildContext context) {
                                                     fontSize: 14.0,
                                                   ),
                                                 ),
-                                                const SizedBox(
+                                                SizedBox(
                                                     width:
                                                         100), // Espacio adicional entre la fecha y el estado de pago
                                                 // Estado de pago
@@ -897,7 +921,7 @@ Widget build(BuildContext context) {
                                                 color: Colors.green),
                                             Text(
                                               '${formatPrecio(venta['valortotal'])}',
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 color: Colors.green,
                                                 fontSize: 18.0,
                                               ),
@@ -922,11 +946,11 @@ Widget build(BuildContext context) {
                                             minimumSize: Size(0,
                                                 30), // Ajusta el tamaño del botón según tus preferencias
                                           ),
-                                          child: const Text(
+                                          child: Text(
                                             'Detalles',
                                           ),
                                         ),
-                                        const SizedBox(
+                                        SizedBox(
                                             width:
                                                 10), // Ajusta el espacio según tus preferencias
                                         Visibility(
@@ -948,7 +972,7 @@ Widget build(BuildContext context) {
                                               minimumSize: Size(0,
                                                   30), // Ajusta el tamaño del botón según tus preferencias
                                             ),
-                                            child: const Text(
+                                            child: Text(
                                               'Abonos',
                                             ),
                                           ),
@@ -966,6 +990,19 @@ Widget build(BuildContext context) {
                       }
                     },
                   ),
+                ),
+
+                // Indicador de carga
+                Visibility(
+                  visible: _isLoadingVentas,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ), // Indicador circular de carga
+                  ),
+                ),
+              ],
+            ),
           ),
           Container(
             padding: const EdgeInsets.all(16.0),
@@ -974,7 +1011,7 @@ Widget build(BuildContext context) {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Total ventas del último mes:',
                   style: TextStyle(fontSize: 16.0),
                 ),
@@ -989,13 +1026,13 @@ Widget build(BuildContext context) {
                     future: formatTotalVentas(totalVentasMesActual),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Text('Cargando...');
+                        return Text('Cargando...');
                       } else if (snapshot.hasError) {
-                        return const Text('Error al formatear el total de ventas');
+                        return Text('Error al formatear el total de ventas');
                       } else {
                         return Text(
                           snapshot.data ?? '',
-                          style: const TextStyle(fontSize: 16.0),
+                          style: TextStyle(fontSize: 16.0),
                         );
                       }
                     },

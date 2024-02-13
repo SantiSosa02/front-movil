@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:modulos_api/main.dart';
 import 'package:modulos_api/presentation/screens/auth.dart';
 import 'package:modulos_api/presentation/screens/principal_screen.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -17,98 +17,93 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController passwordController = TextEditingController();
   bool _isVisible = true;
 
-void apiLogin() async {
-  final email = emailController.text;
-  final password = passwordController.text;
+  void apiLogin() async {
+    final email = emailController.text;
+    final password = passwordController.text;
 
-  if (email.isEmpty || password.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Por favor, llene todos los campos"),
-        backgroundColor: Colors.red,
+    if (email.isEmpty || password.isEmpty) {
+      _showNotification("Por favor, llene todos los campos", Colors.red);
+      return;
+    }
+
+    try {
+      final response = await _authService.login(email, password);
+      print('API Response: $response');
+
+      if (response is Map<String, dynamic>) {
+        final message = response['message'];
+        final user = response['usuario']; // Puede variar según la estructura de tu respuesta
+
+        _showNotification(message, Colors.green);
+
+        // Verifica si la respuesta contiene un token
+        if (response.containsKey('token')) {
+          print('Redirigiendo a la pantalla principal...'); // Agrega un mensaje de depuración
+          // Agrega un ligero retraso antes de la redirección
+          Future.delayed(const Duration(milliseconds: 500), () {
+            // Redirige a la pantalla principal
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PrincipalScreen(),
+              ),
+            );
+          });
+        } else {
+          print('La respuesta no contiene un token.'); // Agrega un mensaje de depuración
+        }
+      } else {
+        // Manejar otros casos de respuesta de la API
+        _showNotification("Error en la respuesta de la API", Colors.red);
+      }
+    } catch (error) {
+      // Error durante el inicio de sesión
+      print('Error during login: $error');
+
+      if (error is Exception) {
+        String errorMessage = 'Error en el inicio de sesión';
+
+        if (error.toString().contains('El usuario está inactivo.')) {
+          errorMessage = 'El usuario está inactivo.';
+        } else if (error.toString().contains('Credenciales incorrectas.')) {
+          errorMessage = 'Credenciales incorrectas.';
+        } else if (error.toString().contains('El usuario no está registrado.')) {
+          errorMessage = 'El usuario no está registrado.';
+        }
+
+        _showNotification(errorMessage, Colors.red);
+      }
+    }
+  }
+
+  void _showNotification(String message, Color backgroundColor) {
+    OverlayEntry overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50.0,
+        right: 10.0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Text(
+              message,
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
       ),
     );
-    return;
+
+    Overlay.of(context)?.insert(overlayEntry);
+
+    Timer(Duration(seconds: 2), () {
+      overlayEntry.remove();
+    });
   }
-
-  try {
-    final response = await _authService.login(email, password);
-    print('API Response: $response');
-
-    if (response is Map<String, dynamic>) {
-      final message = response['message'];
-      final user = response['usuario']; // Puede variar según la estructura de tu respuesta
-
-      final snackBar = SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-      // Verifica si la respuesta contiene un token
-      if (response.containsKey('token')) {
-        print('Redirigiendo a la pantalla principal...');  // Agrega un mensaje de depuración
-        // Agrega un ligero retraso antes de la redirección
-        Future.delayed(const Duration(milliseconds: 500), () {
-          // Redirige a la pantalla principal
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const PrincipalScreen(),
-            ),
-          );
-        });
-      } else {
-        print('La respuesta no contiene un token.');  // Agrega un mensaje de depuración
-      }
-    } else {
-      // Manejar otros casos de respuesta de la API
-      final snackBar = const SnackBar(
-        content: Text('Error en la respuesta de la API'),
-        backgroundColor: Colors.red,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
-  } catch (error) {
-    // Error durante el inicio de sesión
-    print('Error during login: $error');
-
-    if (error is Exception) {
-      String errorMessage = 'Error en el inicio de sesión';
-
-      if (error.toString().contains('El usuario está inactivo.')) {
-        errorMessage = 'El usuario está inactivo.';
-      } else if (error.toString().contains('Credenciales incorrectas.')) {
-        errorMessage = 'Credenciales incorrectas.';
-      } else if (error.toString().contains('El usuario no está registrado.')) {
-        errorMessage = 'El usuario no está registrado.';
-      }
-
-      final snackBar = SnackBar(
-        content: Text(errorMessage, style: _getErrorMessageStyle(context)),
-        backgroundColor: Colors.red,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
-  }
-}
-
-
-
-
-TextStyle _getErrorMessageStyle(BuildContext context) {
-  // Obtiene el tema actual
-  final currentTheme = Theme.of(context);
-  
-  // Ajusta el estilo del texto según el tema
-  return TextStyle(
-    color: currentTheme.brightness == Brightness.light ? Colors.white : Colors.black,
-    fontSize: 16.0,
-  );
-}
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +111,7 @@ TextStyle _getErrorMessageStyle(BuildContext context) {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(40.0),
+        preferredSize: Size.fromHeight(40.0),
         child: AppBar(
           automaticallyImplyLeading: true,
           actions: [
@@ -153,11 +148,11 @@ TextStyle _getErrorMessageStyle(BuildContext context) {
                       color: Colors.black.withOpacity(0.3),
                       spreadRadius: 2,
                       blurRadius: 7,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   radius: 90,
                   backgroundImage: AssetImage("assets/images/VISOR 1.png"),
                 ),
@@ -173,7 +168,7 @@ TextStyle _getErrorMessageStyle(BuildContext context) {
                       controller: emailController,
                       decoration: InputDecoration(
                         labelText: "Correo electrónico",
-                        prefixIcon: const Icon(Icons.email_outlined),
+                        prefixIcon: Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
@@ -219,7 +214,7 @@ TextStyle _getErrorMessageStyle(BuildContext context) {
                 ),
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                    const Color.fromARGB(255, 15, 176, 50),
+                    Color.fromARGB(255, 15, 176, 50),
                   ),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(

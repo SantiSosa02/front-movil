@@ -16,6 +16,8 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
   List<dynamic> clientes = [];
   List<dynamic> productos = [];
   List<dynamic> servicios = [];
+  bool _isLoadingVentas = false;
+  DateTime? startTime;
 
   @override
   void initState() {
@@ -31,6 +33,12 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
 
   Future<void> fetchVentas() async {
     try {
+      setState(() {
+        _isLoadingVentas = true;
+        startTime = DateTime
+            .now(); // Registrar el tiempo de inicio al iniciar la carga de ventas
+      });
+
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
@@ -56,6 +64,17 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
       }
     } catch (error) {
       print('Error in fetchClientes: $error');
+    } finally {
+      DateTime endTime =
+          DateTime.now(); // Obtener el tiempo al finalizar la carga de ventas
+      Duration duration = endTime
+          .difference(startTime!); // Calcular la duración de la carga de ventas
+      Future.delayed(duration, () {
+        setState(() {
+          _isLoadingVentas =
+              false; // Establecer _isLoadingVentas a false después de finalizar la carga de ventas
+        });
+      });
     }
   }
 
@@ -722,17 +741,13 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
       body: Column(
         children: [
           Expanded(
-            child: ventas.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No hay ventas anuladas',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 138, 138, 138),
-                        fontSize: 16.0,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
+            child: Stack(
+              children: [
+                // Lista de ventas
+                AnimatedOpacity(
+                  opacity: _isLoadingVentas ? 0.0 : 1.0,
+                  duration: Duration(milliseconds: 1000),
+                  child: ListView.builder(
                     itemCount: ventas.length,
                     itemBuilder: (context, index) {
                       if (index < clientes.length) {
@@ -793,9 +808,9 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                         Icon(
                                           Icons.account_balance_wallet,
                                           size: 32,
-                                          color:
-                                              const Color.fromARGB(255, 138, 138, 138)
-                                                  .withOpacity(0.5),
+                                          color: const Color.fromARGB(
+                                                  255, 138, 138, 138)
+                                              .withOpacity(0.5),
                                         ),
                                         const SizedBox(width: 8),
                                         Column(
@@ -899,8 +914,8 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                         height:
                                             20), // Espacio adicional antes de la observación
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start, // Alinea los widgets al inicio verticalmente
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         const Text(
                                           'Observación: ',
@@ -911,14 +926,26 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                         ),
                                         Expanded(
                                           child: SingleChildScrollView(
-                                            child: Text(
-                                              '${venta['observacion']}',
-                                              style: const TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 138, 138, 138),
-                                                fontSize: 14.0,
-                                              ),
-                                            ),
+                                            child: venta['observacion'] !=
+                                                        null &&
+                                                    venta['observacion']
+                                                        .isNotEmpty
+                                                ? Text(
+                                                    '${venta['observacion']}',
+                                                    style: const TextStyle(
+                                                      color: Color.fromARGB(
+                                                          255, 138, 138, 138),
+                                                      fontSize: 14.0,
+                                                    ),
+                                                  )
+                                                : const Text(
+                                                    'No hay observación',
+                                                    style: TextStyle(
+                                                      color: Color.fromARGB(
+                                                          255, 138, 138, 138),
+                                                      fontSize: 14.0,
+                                                    ),
+                                                  ),
                                           ),
                                         ),
                                       ],
@@ -959,6 +986,18 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                       }
                     },
                   ),
+                ),
+
+                // Indicador de carga
+                Visibility(
+                  visible: _isLoadingVentas,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
