@@ -130,15 +130,15 @@ Future<void> fetchProductos() async {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 30),
-              Text(
+              const SizedBox(height: 30),
+              const Text(
                 'Estas son las recomendaciones de los productos que podrías comprar:',
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               productos.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Text(
                         'No hay recomendaciones de productos en este momento.',
                         style: TextStyle(
@@ -158,7 +158,7 @@ Future<void> fetchProductos() async {
                           return Card(
                             elevation: 2.0,
                             color: Colors.white,
-                            margin: EdgeInsets.symmetric(vertical: 8),
+                            margin: const EdgeInsets.symmetric(vertical: 8),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
@@ -166,25 +166,25 @@ Future<void> fetchProductos() async {
                                 children: [
                                   Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.shopping_cart,
                                         size: 32,
                                         color: Colors.grey,
                                       ),
-                                      SizedBox(width: 32),
+                                      const SizedBox(width: 32),
                                       Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             '${producto['nombre']}',
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: Colors.black,
                                               fontSize: 16.0,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          SizedBox(height: 22),
+                                          const SizedBox(height: 22),
                                           Row(
                                             children: [
                                               RichText(
@@ -216,7 +216,7 @@ Future<void> fetchProductos() async {
                                                   ],
                                                 ),
                                               ),
-                                              SizedBox(width: 16),
+                                              const SizedBox(width: 16),
                                               RichText(
                                                 text: TextSpan(
                                                   children: [

@@ -64,7 +64,7 @@ void apiLogin() async {
       }
     } else {
       // Manejar otros casos de respuesta de la API
-      final snackBar = SnackBar(
+      final snackBar = const SnackBar(
         content: Text('Error en la respuesta de la API'),
         backgroundColor: Colors.red,
       );
@@ -116,7 +116,7 @@ TextStyle _getErrorMessageStyle(BuildContext context) {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(40.0),
+        preferredSize: const Size.fromHeight(40.0),
         child: AppBar(
           automaticallyImplyLeading: true,
           actions: [
@@ -153,11 +153,11 @@ TextStyle _getErrorMessageStyle(BuildContext context) {
                       color: Colors.black.withOpacity(0.3),
                       spreadRadius: 2,
                       blurRadius: 7,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: CircleAvatar(
+                child: const CircleAvatar(
                   radius: 90,
                   backgroundImage: AssetImage("assets/images/VISOR 1.png"),
                 ),
@@ -173,7 +173,7 @@ TextStyle _getErrorMessageStyle(BuildContext context) {
                       controller: emailController,
                       decoration: InputDecoration(
                         labelText: "Correo electrónico",
-                        prefixIcon: Icon(Icons.email_outlined),
+                        prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
@@ -219,7 +219,7 @@ TextStyle _getErrorMessageStyle(BuildContext context) {
                 ),
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                    Color.fromARGB(255, 15, 176, 50),
+                    const Color.fromARGB(255, 15, 176, 50),
                   ),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(

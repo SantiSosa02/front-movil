@@ -34,7 +34,7 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarMenu(title: _appBarTitle()),
-      drawer: MenuDrawer(),
+      drawer: const MenuDrawer(),
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
@@ -54,7 +54,7 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Color.fromARGB(255, 92, 168, 215),
+        selectedItemColor: const Color.fromARGB(255, 92, 168, 215),
         onTap: _onItemTapped,
       ),
     );

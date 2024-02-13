@@ -595,8 +595,8 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
         return Container(
           height: MediaQuery.of(context).size.height * 0.5,
           padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.only(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(16.0),
               topRight: Radius.circular(16.0),
             ),
@@ -664,8 +664,8 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.only(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(16.0),
               topRight: Radius.circular(16.0),
             ),
@@ -685,13 +685,13 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return Text('Cargando abonos...');
+                          return const Text('Cargando abonos...');
                         } else if (snapshot.hasError) {
-                          return Text('Error al cargar abonos');
+                          return const Text('Error al cargar abonos');
                         } else {
                           List<dynamic> abonos = snapshot.data ?? [];
                           if (abonos.isEmpty) {
-                            return Text('No hay abonos registrados');
+                            return const Text('No hay abonos registrados');
                           } else {
                             List<Widget> abonosWidgets =
                                 buildDetalleAbonosWidgets(abonos);
@@ -723,7 +723,7 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
         children: [
           Expanded(
             child: ventas.isEmpty
-                ? Center(
+                ? const Center(
                     child: Text(
                       'No hay ventas anuladas',
                       style: TextStyle(
@@ -794,10 +794,10 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                           Icons.account_balance_wallet,
                                           size: 32,
                                           color:
-                                              Color.fromARGB(255, 138, 138, 138)
+                                              const Color.fromARGB(255, 138, 138, 138)
                                                   .withOpacity(0.5),
                                         ),
-                                        SizedBox(width: 8),
+                                        const SizedBox(width: 8),
                                         Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
@@ -820,7 +820,7 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                                     fontSize: 14.0,
                                                   ),
                                                 ),
-                                                SizedBox(
+                                                const SizedBox(
                                                     width:
                                                         100), // Espacio adicional entre la fecha y el estado de pago
                                                 // Estado de pago
@@ -885,7 +885,7 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                                     255, 138, 138, 138)),
                                             Text(
                                               '${formatPrecio(venta['valortotal'])}',
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 color: Color.fromARGB(
                                                     255, 138, 138, 138),
                                                 fontSize: 18.0,
@@ -895,32 +895,39 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                         ),
                                       ],
                                     ),
-                                    SizedBox(
+                                    const SizedBox(
                                         height:
                                             20), // Espacio adicional antes de la observación
-                                  Row(
-  children: [
-    Text(
-      'Observación: ',
-      style: TextStyle(
-        color: Colors.black,
-        fontSize: 14.0,
-      ),
-    ),
-    Text(
-      '${venta['observacion']}',
-      style: const TextStyle(
-        color: Color.fromARGB(255, 138, 138, 138),
-        fontSize: 14.0,
-      ),
-    ),
-  ],
-),
-                                    SizedBox(
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment
+                                          .start, // Alinea los widgets al inicio verticalmente
+                                      children: [
+                                        const Text(
+                                          'Observación: ',
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 14.0,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: SingleChildScrollView(
+                                            child: Text(
+                                              '${venta['observacion']}',
+                                              style: const TextStyle(
+                                                color: Color.fromARGB(
+                                                    255, 138, 138, 138),
+                                                fontSize: 14.0,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    const SizedBox(
                                         height:
                                             10), // Espacio adicional después de la observación
 
-                
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.start,
@@ -931,13 +938,13 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
                                                 context, venta, cliente);
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            primary: Color.fromARGB(
+                                            primary: const Color.fromARGB(
                                                 255, 138, 138, 138),
                                             onPrimary: Colors.white,
-                                            minimumSize: Size(0,
+                                            minimumSize: const Size(0,
                                                 30), // Ajusta el tamaño del botón según tus preferencias
                                           ),
-                                          child: Text(
+                                          child: const Text(
                                             'Detalles',
                                           ),
                                         ), // Ajusta el espacio según tus preferencias

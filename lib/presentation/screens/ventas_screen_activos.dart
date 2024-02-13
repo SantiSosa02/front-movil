@@ -595,8 +595,8 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
         return Container(
           height: MediaQuery.of(context).size.height * 0.5,
           padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.only(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(16.0),
               topRight: Radius.circular(16.0),
             ),
@@ -664,8 +664,8 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.only(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(16.0),
               topRight: Radius.circular(16.0),
             ),
@@ -685,13 +685,13 @@ Future<List<dynamic>> obtenerAbonos(int idVenta) async {
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return Text('Cargando abonos...');
+                          return const Text('Cargando abonos...');
                         } else if (snapshot.hasError) {
-                          return Text('Error al cargar abonos');
+                          return const Text('Error al cargar abonos');
                         } else {
                           List<dynamic> abonos = snapshot.data ?? [];
                           if (abonos.isEmpty) {
-                            return Text('No hay abonos registrados');
+                            return const Text('No hay abonos registrados');
                           } else {
                             List<Widget> abonosWidgets =
                                 buildDetalleAbonosWidgets(abonos);
@@ -738,7 +738,7 @@ Widget build(BuildContext context) {
         children: [
           Expanded(
             child: ventas.isEmpty
-                ? Center(
+                ? const Center(
                     child: Text(
                       'No hay ventas registradas',
                       style: TextStyle(
@@ -810,7 +810,7 @@ Widget build(BuildContext context) {
                                           size: 32,
                                           color: Colors.green.withOpacity(0.5),
                                         ),
-                                        SizedBox(width: 8),
+                                        const SizedBox(width: 8),
                                         Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
@@ -833,7 +833,7 @@ Widget build(BuildContext context) {
                                                     fontSize: 14.0,
                                                   ),
                                                 ),
-                                                SizedBox(
+                                                const SizedBox(
                                                     width:
                                                         100), // Espacio adicional entre la fecha y el estado de pago
                                                 // Estado de pago
@@ -897,7 +897,7 @@ Widget build(BuildContext context) {
                                                 color: Colors.green),
                                             Text(
                                               '${formatPrecio(venta['valortotal'])}',
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 color: Colors.green,
                                                 fontSize: 18.0,
                                               ),
@@ -922,11 +922,11 @@ Widget build(BuildContext context) {
                                             minimumSize: Size(0,
                                                 30), // Ajusta el tamaño del botón según tus preferencias
                                           ),
-                                          child: Text(
+                                          child: const Text(
                                             'Detalles',
                                           ),
                                         ),
-                                        SizedBox(
+                                        const SizedBox(
                                             width:
                                                 10), // Ajusta el espacio según tus preferencias
                                         Visibility(
@@ -948,7 +948,7 @@ Widget build(BuildContext context) {
                                               minimumSize: Size(0,
                                                   30), // Ajusta el tamaño del botón según tus preferencias
                                             ),
-                                            child: Text(
+                                            child: const Text(
                                               'Abonos',
                                             ),
                                           ),
@@ -974,7 +974,7 @@ Widget build(BuildContext context) {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Total ventas del último mes:',
                   style: TextStyle(fontSize: 16.0),
                 ),
@@ -989,13 +989,13 @@ Widget build(BuildContext context) {
                     future: formatTotalVentas(totalVentasMesActual),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Text('Cargando...');
+                        return const Text('Cargando...');
                       } else if (snapshot.hasError) {
-                        return Text('Error al formatear el total de ventas');
+                        return const Text('Error al formatear el total de ventas');
                       } else {
                         return Text(
                           snapshot.data ?? '',
-                          style: TextStyle(fontSize: 16.0),
+                          style: const TextStyle(fontSize: 16.0),
                         );
                       }
                     },
