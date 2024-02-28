@@ -745,14 +745,30 @@ class _VentasScreenState extends State<VentasScreenInactivos> {
               children: [
                 // Lista de ventas
                 AnimatedOpacity(
-                  opacity: _isLoadingVentas ? 0.0 : 1.0,
-                  duration: Duration(milliseconds: 1000),
-                  child: ListView.builder(
-                    itemCount: ventas.length,
-                    itemBuilder: (context, index) {
-                      if (index < clientes.length) {
-                        final venta = ventas[index];
-                        final cliente = clientes[index];
+  opacity: _isLoadingVentas ? 0.0 : 1.0,
+  duration: Duration(milliseconds: 1000),
+  child: _isLoadingVentas
+      ? Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+          ),
+        )
+      : ventas.isEmpty
+          ? Center(
+              child: Text(
+                'No hay ventas anuladas',
+                style: TextStyle(
+                  color: Color.fromARGB(255, 138, 138, 138),
+                  fontSize: 14.0,
+                ),
+              ),
+            )
+          : ListView.builder(
+              itemCount: ventas.length,
+              itemBuilder: (context, index) {
+                if (index < clientes.length) {
+                  final venta = ventas[index];
+                  final cliente = clientes[index];
 
                         List<Widget> detallesProductosWidgets = [];
                         if (venta['DetalleVentaProductos'] != null &&
