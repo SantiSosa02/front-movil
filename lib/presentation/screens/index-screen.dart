@@ -160,126 +160,108 @@ class _IndexScreenState extends State<IndexScreen> {
                           ),
                         )
                       : Expanded(
-                          child: ListView.builder(
-                            itemCount: productos.length,
-                            itemBuilder: (context, index) {
-                              final producto = productos[index];
-                              final categoria = producto['categoria'];
+  child: ListView.builder(
+    itemCount: productos.length,
+    itemBuilder: (context, index) {
+      final producto = productos[index];
+      final categoria = producto['categoria'];
 
-                              return Card(
-                                elevation: 2.0,
-                                color: Colors.white,
-                                margin:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.shopping_cart,
-                                            size: 32,
-                                            color: Colors.grey,
-                                          ),
-                                          const SizedBox(width: 32),
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                '${producto['nombre']}',
-                                                style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 16.0,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 22),
-                                              Row(
-                                                children: [
-                                                  RichText(
-                                                    text: TextSpan(
-                                                      children: [
-                                                        const TextSpan(
-                                                          text: 'Cantidad: ',
-                                                          style: TextStyle(
-                                                            color: Colors.black,
-                                                            fontSize: 14.0,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        const WidgetSpan(
-                                                          child: SizedBox(
-                                                            width: 8,
-                                                          ),
-                                                        ),
-                                                        TextSpan(
-                                                          text:
-                                                              '${producto['cantidad']}',
-                                                          style:
-                                                              const TextStyle(
-                                                            color: Color.fromARGB(
-                                                                255,
-                                                                138,
-                                                                138,
-                                                                138),
-                                                            fontSize: 14.0,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 16),
-                                                  RichText(
-                                                    text: TextSpan(
-                                                      children: [
-                                                        const TextSpan(
-                                                          text: 'Categoria: ',
-                                                          style: TextStyle(
-                                                            color: Colors.black,
-                                                            fontSize: 14.0,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        const WidgetSpan(
-                                                          child: SizedBox(
-                                                            width: 8,
-                                                          ),
-                                                        ),
-                                                        TextSpan(
-                                                          text:
-                                                              '${categoria['nombre']}',
-                                                          style:
-                                                              const TextStyle(
-                                                            color: Color.fromARGB(
-                                                                255,
-                                                                138,
-                                                                138,
-                                                                138),
-                                                            fontSize: 14.0,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
+      return Card(
+        elevation: 2.0,
+        color: Colors.white,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.shopping_cart,
+                    size: 32,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${producto['nombre']}',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Cantidad: ',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const WidgetSpan(
+                                child: SizedBox(
+                                  width: 8,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '${producto['cantidad']}',
+                                style: const TextStyle(
+                                  color: Color.fromARGB(255, 138, 138, 138),
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Categoria: ',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const WidgetSpan(
+                                child: SizedBox(
+                                  width: 8,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '${categoria['nombre']}',
+                                style: const TextStyle(
+                                  color: Color.fromARGB(255, 138, 138, 138),
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  ),
+),
+
             ],
           ),
         ),
